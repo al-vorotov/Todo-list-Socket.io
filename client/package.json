@@ -1,0 +1,66 @@
+{
+  "name": "api",
+  "version": "1.0.0",
+  "private": false,
+  "license": "MIT",
+  "jest": {
+    "moduleNameMapper": {
+      "~/(.*)": "<rootDir>/src/$1"
+    }
+  },
+  "scripts": {
+    "start": "react-app-rewired start",
+    "start:production": "serve -s build",
+    "build": "react-app-rewired build",
+    "test": "react-app-rewired test",
+    "eject": "react-app-rewired eject"
+  },
+  "proxy": "http://localhost:8080",
+  "dependencies": {
+    "@material-ui/core": "^4.10.0",
+    "@material-ui/icons": "^4.9.1",
+    "@types/axios": "^0.14.0",
+    "@types/jest": "^25.2.3",
+    "@types/node": "^14.0.5",
+    "@types/react": "^16.9.35",
+    "@types/react-dom": "^16.9.8",
+    "@types/react-router-dom": "^5.1.5",
+    "@types/socket.io": "^2.1.8",
+    "@types/socket.io-client": "^1.4.33",
+    "axios": "^0.19.2",
+    "react": "^16.13.1",
+    "react-dom": "^16.13.1",
+    "react-router-dom": "^5.2.0",
+    "socket.io": "^2.3.0",
+    "socket.io-client": "^2.3.0"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^5.8.0",
+    "@testing-library/react": "^10.0.4",
+    "@testing-library/user-event": "^10.3.5",
+    "babel-plugin-root-import": "^6.5.0",
+    "customize-cra": "^0.9.1",
+    "prettier": "^2.0.5",
+    "react-app-rewired": "^2.1.6",
+    "react-scripts": "^3.4.1",
+    "serve": "^11.3.1",
+    "tslint": "^6.1.2",
+    "tslint-config-prettier": "^1.18.0",
+    "typescript": "^3.9.3"
+  },
+  "tslintConfig": {
+    "extends": "react-app"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}

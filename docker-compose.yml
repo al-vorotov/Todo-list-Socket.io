@@ -1,0 +1,25 @@
+# Defines our composer file version
+version: '3.5'
+# Define our services
+services:
+  # This is our nodejs app built using the Dockerfile
+  client:
+    # The name of our node app container
+    build: client
+    container_name: template_web
+    ports:
+      - "5000:5000"
+    links:
+      - api
+  api:
+    build: api
+    container_name: api
+    depends_on:
+      - mongo
+    ports:
+        - 8080:8080
+  mongo:
+    container_name: mongo
+    image: mongo
+    ports:
+      - "27017:27017"
