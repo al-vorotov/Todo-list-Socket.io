@@ -1,4 +1,9 @@
-import React, {FC, useState, ChangeEvent, MouseEvent, KeyboardEvent, useEffect} from "react";
+import React, {
+  FC,
+  useState,
+  ChangeEvent,
+  KeyboardEvent
+} from "react";
 import {
   createStyles,
   makeStyles,
@@ -10,11 +15,11 @@ import {
   ListItem,
   ListItemIcon,
   ListItemSecondaryAction,
-  ListItemText,
   Checkbox,
   IconButton,
   TextField,
-  Typography
+  Typography,
+  Paper
 } from '@material-ui/core';
 import DeleteIcon from '@material-ui/icons/Delete';
 
@@ -28,10 +33,9 @@ import {
 import socket from "../../socket";
 
 type Props = {
-  users: {
-    userName: UserName,
-    roomName: RoomName,
-  },
+  userName: UserName,
+  roomName: RoomName,
+  users: UserName[],
   todos: Todo[]
 }
 
@@ -48,72 +52,91 @@ const useStyles = makeStyles((theme: Theme) =>
     },
     textField: {
       width: '100%'
+    },
+    userList: {
+      zIndex: 1000,
+      position: 'fixed',
+      top: '2px',
+      right: '2px',
+      padding: '10px'
     }
   }),
 );
 
-const TodoApp: FC<Props> = (props) => {
+const TodoApp: FC<Props> = ({roomName, userName, users, todos}) => {
+
   const classes = useStyles();
-  const [todos, setTodos] = useState<Todo[]>([]);
+
   const [text, setText] = useState<Text>('');
 
-  useEffect(() => {
-    setTodos([...props.todos]);
-  }, []);
-  console.log('----->props.todos', props.todos)
   const handleTextChange = (event: ChangeEvent<HTMLInputElement>) => {
     setText(event.target.value);
   }
 
   const handleKeyPress = (event: KeyboardEvent<HTMLInputElement>) => {
+
     if (event.key === 'Enter') {
       if (text) {
-        const newTodos = [...todos];
-
-        // newTodos.push({
-        //   text,
-        //   id: newTodos.length,
-        //   userName: props.userName,
-        //   checked: false
-        // });
-
         socket.emit('ROOM:NEW_TODO', {
           text,
-          userName: props.userName,
-          roomId: props.roomName
+          userName,
+          roomId: roomName,
+          checked: false
         });
 
-        setTodos([...newTodos]);
         setText('');
       }
     }
   }
 
   const handleToggle = (todoId: TodoId) => () => {
-    const newTodos = todos.map((todo) => {
-      if (todo.id === todoId) {
-        return {
+
+    todos.forEach((todo) => {
+      if (todo._id === todoId) {
+        const updatedTodo = {
           ...todo,
           checked: !todo.checked
-        }
+        };
+
+        socket.emit('ROOM:UPDATE_TODO', {
+          todo: updatedTodo,
+          roomId: roomName
+        });
       }
-
-      return todo;
     });
-
-    setTodos([...newTodos]);
   }
 
   const handleDelete = (todoId: TodoId) => () => {
-    const newTodos = todos.filter((todo) => {
-      return todo.id === todoId ? false : true;
-    });
 
-    setTodos([...newTodos]);
+    todos.forEach((todo) => {
+      if (todo._id === todoId) {
+        socket.emit('ROOM:DELETE_TODO', {
+          todo,
+          roomId: roomName
+        });
+      }
+    });
   }
 
   return (
     <Grid item xs={12} sm={10} md={8} lg={6}>
+      <Paper className={classes.userList}>
+        <Typography
+          component="span"
+          variant="body2"
+          color="textPrimary"
+        >
+          Users:
+        </Typography>
+        <div>
+          {
+            users.map((user) => {
+              return <div key={user}>{user}</div>;
+            })
+          }
+        </div>
+      </Paper>
+
       <TextField
         id="standard-basic"
         label="Todo"
@@ -126,15 +149,15 @@ const TodoApp: FC<Props> = (props) => {
       <List className={classes.root}>
         {
           todos.map((todo) => {
-            const labelId = `checkbox-list-label-${todo.id}`;
+            const labelId = `checkbox-list-label-${todo._id}`;
 
             return (
               <ListItem
-                key={todo.id}
+                key={todo._id}
                 role={undefined}
                 dense
                 button
-                onClick={handleToggle(todo.id)}
+                onClick={handleToggle(todo._id)}
               >
                 <ListItemIcon>
                   <Checkbox
@@ -159,7 +182,7 @@ const TodoApp: FC<Props> = (props) => {
                 </div>
 
                 <ListItemSecondaryAction>
-                  <IconButton edge="end" onClick={handleDelete(todo.id)}>
+                  <IconButton edge="end" onClick={handleDelete(todo._id)}>
                     <DeleteIcon fontSize="small"/>
                   </IconButton>
                 </ListItemSecondaryAction>

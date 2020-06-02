@@ -1,10 +1,4 @@
 import React, {FC, useState} from 'react';
-
-import {
-  RoomName,
-  UserName,
-  FunctionJoinRoom
-} from '../../types';
 import {
   Button,
   TextField,
@@ -13,7 +7,14 @@ import {
   createStyles,
   Grid
 } from '@material-ui/core';
+
 import api from '../../api';
+
+import {
+  RoomName,
+  UserName,
+  FunctionJoinRoom
+} from '../../types';
 
 type Props = {
   onJoinRoom: FunctionJoinRoom;
@@ -37,11 +38,13 @@ const useStyles = makeStyles((theme: Theme) =>
 
 const JoinBlock: FC<Props> = ({onJoinRoom}) => {
   const classes = useStyles();
+
   const [roomName, setRoomName] = useState<RoomName>('');
   const [userName, setUserName] = useState<UserName>('');
   const [isLoading, setLoading] = useState(false);
 
   const handleClick = async () => {
+
     const room = roomName.trim();
     const user = userName.trim();
 
@@ -50,11 +53,13 @@ const JoinBlock: FC<Props> = ({onJoinRoom}) => {
     }
 
     setLoading(true);
+
     await api.addUserInRoom({
       userName,
       roomId: roomName
     });
-    onJoinRoom({ roomName, userName });
+
+    onJoinRoom({roomName, userName});
   };
 
   return (
@@ -84,7 +89,7 @@ const JoinBlock: FC<Props> = ({onJoinRoom}) => {
         disabled={isLoading}
         onClick={handleClick}
       >
-      {isLoading ? 'Entry...' : 'Join'}
+        {isLoading ? 'Entry...' : 'Join'}
       </Button>
     </Grid>
   );

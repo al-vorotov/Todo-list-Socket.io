@@ -1,10 +1,11 @@
-import express, { Express } from 'express';
-import { createServer } from 'http';
+import express, {Express} from 'express';
+import {createServer} from 'http';
 import cors from 'cors';
 
 import createSocket from './core/socket';
 import createRoutes from './core/routes';
 import {PORT, CLIENT} from './configs/env';
+
 import('./database');
 
 

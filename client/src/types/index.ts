@@ -5,7 +5,7 @@ export type Text = string;
 export type Checked = boolean;
 
 export type Todo = {
-  id: TodoId;
+  _id: TodoId;
   userName: UserName;
   text: Text;
   checked: Checked;
@@ -18,6 +18,16 @@ export type PayloadJoined = {
 
 export type PayloadTodos = { 
   todos: Todo[];
+}
+
+export type PayloadUsers = {
+  users: UserName[];
+}
+
+export type PayloadNewTodo = {
+  userName: UserName,
+  text: Text;
+  checked: Checked;
 }
 
 export type FunctionJoinRoom = (joinInfo: PayloadJoined) => void;

@@ -1,9 +1,10 @@
 import express from 'express';
 import socket from 'socket.io';
 
-import RoomsModel, {IRooms} from '../models/Rooms';
+import RoomsModel, { IRooms } from '../models/Rooms';
 
 class RoomController {
+
   io: socket.Server;
 
   constructor(io: socket.Server) {
@@ -11,36 +12,49 @@ class RoomController {
   }
 
   index = async (req: express.Request, res: express.Response) => {
+
     const {id: roomId} = req.params;
     const candidate = await RoomsModel.findOne({
       roomId
     });
+
     if (candidate) {
+
       const users = candidate.users.map(item => item.userName)
       const obj = {
         users,
         todos: candidate.todos,
       }
+
       res.json(obj);
     } else {
+
       const obj = {
         roomId,
         users: [],
         todos: [],
       }
+
       res.json(obj);
     }
   };
 
   create = async (req: express.Request, res: express.Response) => {
-    const {roomId, userName} = req.body;
 
+    const {roomId, userName} = req.body;
     const candidate = await RoomsModel.findOne({
       roomId
     });
 
     if (candidate) {
-      let updated: object = {users: [...candidate.users, {userName}]}
+
+      let updated: {} = userName === 'admin'
+        ? {
+          users: [...candidate.users, {userName}],
+          todos: []
+        }
+        : {users: [...candidate.users, {userName}]}
+
       try {
         await RoomsModel.findOneAndUpdate(
           {
@@ -56,7 +70,7 @@ class RoomController {
                 massage: err
               })
             } else {
-              res.status(201).json({
+              return res.status(201).json({
                 doc
               })
             }
@@ -66,9 +80,6 @@ class RoomController {
           massage: e
         })
       }
-      res.status(201).json({
-        candidate
-      })
     } else {
 
       let newRooms = new RoomsModel({
@@ -78,6 +89,7 @@ class RoomController {
         }],
         todos: [],
       });
+
       try {
         await newRooms.save();
         res.status(201).json({

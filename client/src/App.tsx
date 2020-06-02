@@ -1,11 +1,28 @@
-import React, { FC, useReducer, useEffect } from 'react';
+import React, {
+  FC,
+  useReducer,
+  useEffect
+} from 'react';
+
+import {
+  Grid,
+  makeStyles,
+  createStyles,
+  Theme
+} from '@material-ui/core';
+
 import JoinBlock from './components/JoinBlock';
 import TodoApp from './components/TodoApp';
-import { Grid, makeStyles, createStyles, Theme } from '@material-ui/core';
 import reducer from './reducer';
-import { FunctionJoinRoom, Todo } from './types';
 import socket from './socket';
 import api from './api';
+
+import {
+  FunctionJoinRoom,
+  Todo,
+  UserName
+} from './types';
+
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -22,17 +39,40 @@ const App: FC = () => {
     joined: false,
     roomName: '',
     userName: '',
+    users: [],
     todos: []
   });
-  console.log('----->todos', state.todos)
-  const updateTodos = (todos: Todo[]) => {
+
+  const addTodo = (data: any) => {
+
     dispatch({
-      type: 'UPDATE_TODOS',
-      payload: { todos },
+      type: 'NEW_TODO',
+      payload: {todos: data},
     });
   };
 
+  const updateTodos = (todos: Todo[]) => {
+
+    dispatch({
+      type: 'UPDATE_TODOS',
+      payload: {todos},
+    });
+  };
+
+  const updateRooms = (users: UserName[], todos: Todo[]) => {
+
+    dispatch({
+      type: 'UPDATE_USERS',
+      payload: {users},
+    });
+    dispatch({
+      type: 'UPDATE_TODOS',
+      payload: {todos},
+    });
+  }
+
   const joinRoom: FunctionJoinRoom = async (joinInfo) => {
+
     dispatch({
       type: 'JOINED',
       payload: joinInfo,
@@ -43,13 +83,17 @@ const App: FC = () => {
       userName: joinInfo.userName
     });
 
-    const { data } = await api.getRoom(joinInfo.roomName);
+    const {data} = await api.getRoom(joinInfo.roomName);
 
-    updateTodos(data);
+    updateTodos(data.todos);
+    updateRooms(data.users, data.todos);
   }
 
   useEffect(() => {
-    socket.on('ROOM:UPDATE_TODOS', updateTodos);
+
+    socket.on('ROOM:SET_USERS', updateRooms);
+    socket.on('ROOM:ALL_TODOS', updateTodos);
+    socket.on('ROOM:NEW_TODO', addTodo);
   }, []);
 
   window.socket = socket;

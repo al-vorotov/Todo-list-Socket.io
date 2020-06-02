@@ -13,7 +13,7 @@ export interface IRooms extends Document {
   todos: [{
     userName: string,
     text: string,
-    id: Types.ObjectId,
+    _id: Types.ObjectId,
     checked: boolean
   }]
 }
@@ -33,9 +33,9 @@ const RoomsSchema = new Schema(
       type: [{
         userName: String,
         text: String,
-        id: Types.ObjectId,
         checked: Boolean
-      }]},
+      }]
+    },
   },
   {
     timestamps: true,

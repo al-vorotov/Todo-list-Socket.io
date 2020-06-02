@@ -32,7 +32,7 @@ Access `http://localhost:5000` on the browser.
 
 
 
-#Start for development:
+# Start for development:
 
    -  Type `cd ./api && yarn start` to start the web and server.
    -   Change proxy in `./client/package.json` to you network for example `http://localhost:8080`

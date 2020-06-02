@@ -1,8 +1,8 @@
 import socket from 'socket.io';
 import http from 'http';
-import RoomsModel, {IRooms} from "../models/Rooms";
-import {Types} from "mongoose";
-import ObjectId = module
+import { Types } from 'mongoose';
+
+import RoomsModel, { IRooms } from "../models/Rooms";
 
 export default (http: http.Server) => {
   const io = socket(http);
@@ -15,6 +15,7 @@ export default (http: http.Server) => {
         roomId
       });
       let users: string[] = [];
+      let todos: {}[] = [];
 
       if (candidate) {
 
@@ -35,18 +36,17 @@ export default (http: http.Server) => {
                 socket.to(candidate.roomId).broadcast.emit('error', err);
               } else {
                 users = doc.users.map(item => item.userName)
-
+                todos = doc.todos
               }
             });
         } catch (e) {
-          socket.to(candidate.roomId).broadcast.emit('error', e);
+          console.log('----->e', e)
         }
       }
-      socket.to(roomId).broadcast.emit('ROOM:SET_USERS', users);
+      socket.to(roomId).broadcast.emit('ROOM:SET_USERS', users , todos);
     });
 
     socket.on('ROOM:NEW_TODO', async ({roomId, userName, text, checked}: { roomId: string, userName: string, text: string, checked: boolean }) => {
-
       const obj: { userName: string, text: string, checked: boolean } = {
         userName,
         text,
@@ -55,14 +55,12 @@ export default (http: http.Server) => {
       const candidate = await RoomsModel.findOne({
         roomId
       });
-
       if (candidate) {
 
         const sortSocketTodos = [obj, ...candidate.todos.reverse()].slice(0, 20).reverse()
         let updated: object = {
           todos: sortSocketTodos
         }
-
         try {
           await RoomsModel.findOneAndUpdate(
             {
@@ -76,77 +74,83 @@ export default (http: http.Server) => {
               if (err || !doc) {
                 socket.to(candidate.roomId).broadcast.emit('error', err);
               } else {
-                socket.to(roomId).broadcast.emit('ROOM:NEW_MESSAGE', obj);
+                io.in(roomId).emit('ROOM:NEW_TODO', doc.todos);
               }
             });
         } catch (e) {
-          socket.to(candidate.roomId).broadcast.emit('error', e);
+          console.log('----->e', e)
         }
       }
     });
 
-    socket.on('ROOM:UPDATE_TODO', async ({roomId, todo}: {roomId:string, todo: { id: ObjectId }}) => {
+    socket.on('ROOM:UPDATE_TODO', async ({roomId, todo}: {roomId:string, todo: {_id : Types.ObjectId}}) => {
 
       const candidate = await RoomsModel.findOne({
-        "todos.id": todo.id
+        roomId
       });
 
       if (candidate) {
-        const updated = candidate.todos.map(item => todo.id === item.id ? todo : item)
+        const updatedSocketTodos = candidate.todos.map(item => todo._id == item._id ? todo : item)
+        const updated:{} = {todos:updatedSocketTodos}
         try {
           await RoomsModel.findOneAndUpdate(
             {
               roomId
             },
             {
-              $set: {updated}
+              $set: updated
             },
             {new: true},
             (err, doc: IRooms | null) => {
               if (err || !doc) {
-                socket.to(candidate.roomId).broadcast.emit('error', err);
+                console.log('----->e', err)
               } else {
-                socket.to(roomId).broadcast.emit('ROOM:NEW_MESSAGE', doc);
+                io.in(roomId).emit('ROOM:ALL_TODOS', doc.todos);
               }
             });
         } catch (e) {
-          socket.to(candidate.roomId).broadcast.emit('error', e);
+          console.log('----->e', e)
         }
       }
     });
 
-    socket.on('ROOM:DELETE_TODO', async ({roomId, todo}: {roomId:string, todo: { id: ObjectId }}) => {
+    socket.on('ROOM:DELETE_TODO', async ({roomId, todo}: {roomId:string, todo: { _id: Types.ObjectId }}) => {
 
       const candidate = await RoomsModel.findOne({
-        "todos.id": todo.id
+        roomId
       });
-
       if (candidate) {
-        const updated = candidate.todos.map(item => todo.id === item.id ? null : item)
+        const deletedSocketTodos:{}[] = []
+        candidate.todos.forEach(item => {
+          if(todo._id == item._id){
+            return;
+          }
+          deletedSocketTodos.push(item)
+        })
+        const updated:{} = {todos:deletedSocketTodos}
         try {
           await RoomsModel.findOneAndUpdate(
             {
               roomId
             },
             {
-              $set: {updated}
+              $set: updated
             },
             {new: true},
             (err, doc: IRooms | null) => {
               if (err || !doc) {
-                socket.to(candidate.roomId).broadcast.emit('error', err);
+                console.log('----->e', err)
               } else {
-                socket.to(roomId).broadcast.emit('ROOM:NEW_MESSAGE', doc);
+                io.in(roomId).emit('ROOM:ALL_TODOS', doc.todos);
               }
             });
         } catch (e) {
-          socket.to(candidate.roomId).broadcast.emit('error', e);
+          console.log('----->e', e)
         }
       }
     });
 
     socket.on('disconnect', async () => {
-
       let users: string[] = [];
       const candidate = await RoomsModel.findOne({'users.id': socket.id})
 
@@ -164,20 +168,19 @@ export default (http: http.Server) => {
             {new: true},
             (err, doc: IRooms | null) => {
               if (err || !doc) {
-                socket.to(candidate.roomId).broadcast.emit('error', err);
+                console.log('----->e', err)
               } else {
                 users = doc.users.map(item => item.userName)
 
               }
             });
         } catch (e) {
-          socket.to(candidate.roomId).broadcast.emit('error', e);
+          console.log('----->e', e)
         }
-        socket.to(candidate.roomId).broadcast.emit('ROOM:SET_USERS', users);
+        io.in(candidate.roomId).emit('ROOM:SET_USERS', users, candidate.todos );
       }
 
     });
-
     console.log('user connected', socket.id);
   });
 
