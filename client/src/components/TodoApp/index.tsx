@@ -51,14 +51,21 @@ const useStyles = makeStyles((theme: Theme) =>
       marginLeft: '3px'
     },
     textField: {
+      marginTop: '50px',
       width: '100%'
     },
     userList: {
       zIndex: 1000,
       position: 'fixed',
-      top: '2px',
-      right: '2px',
-      padding: '10px'
+      top: '5px',
+      right: '5px',
+      padding: '10px',
+      width: '100px',
+    },
+    userListBlock: {
+      borderTop: '1px solid #A8A8A8',
+      marginTop: '5px',
+      padding: '5px'
     }
   }),
 );
@@ -128,7 +135,7 @@ const TodoApp: FC<Props> = ({roomName, userName, users, todos}) => {
         >
           Users:
         </Typography>
-        <div>
+        <div className={classes.userListBlock}>
           {
             users.map((user) => {
               return <div key={user}>{user}</div>;
